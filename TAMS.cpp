@@ -15,19 +15,20 @@ int main() {
 		return -1;
 	}
 
+	// ==================== TAMS Engine and Systems Initialization ====================
+	Engine Tams;
+	Tams.generateBoard();
+
+	// Rendering the UI
+	window.RenderRect(0, 0, 800, 600, Color::BACKGROUND_COLOR);
+	window.RenderText(L"TEST", 7, 7, Color::TEXT_DEFAULT_COLOR, Color::BACKGROUND_COLOR);
+	window.RenderText(L"TEST", 7, 22, Color::TEXT_DEFAULT_COLOR, Color::BACKGROUND_COLOR);
+	window.RenderBorders(Color::TEXT_DEFAULT_COLOR);
+
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
-
-		// ==================== TAMS Engine and Systems Initialization ====================
-		Engine Tams;
-		Tams.generateBoard();
-
-		window.RenderRect(0, 0, 800, 600, Color::BACKGROUND_COLOR);
-		window.RenderText(L"TEST", 0, 0, Color::TEXT_DEFAULT_COLOR, Color::BACKGROUND_COLOR);
-		window.RenderText(L"TEST", 0, 13, Color::TEXT_DEFAULT_COLOR, Color::BACKGROUND_COLOR);
-		window.RenderBorders(Color::TEXT_DEFAULT_COLOR);
 	}
 
 	window.Cleanup();

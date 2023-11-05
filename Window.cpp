@@ -31,8 +31,8 @@ Window::Window() : hwnd(NULL) {
 	);
 
 	Window::wnd_sectors = {
-		{ L"Side", 0  , 0, 250, 600, 10, false },
-		{ L"Game", 250, 0, 800, 600, 10, false }
+		{ L"Side", 0  , 0, 250, 600, 5, false },
+		{ L"Game", 250, 0, 800, 600, 5, false }
 	};
 }
 
@@ -104,14 +104,15 @@ void Window::RenderText(const wchar_t* text, short x, short y, COLORREF textFgCo
 void Window::RenderRect(short left, short top, short right, short bottom, COLORREF color) {
 	HDC hdc = GetDC(hwnd);
 	if (hdc) {
-		RECT rect = { left, top, right, bottom };
-		HBRUSH hBrush = CreateSolidBrush(color);
-		HBRUSH hOldBrush = static_cast<HBRUSH>(SelectObject(hdc, hBrush));
+		HBRUSH hBrush = CreateSolidBrush(color); // create new brush
+		HBRUSH hOldBrush = static_cast<HBRUSH>(SelectObject(hdc, hBrush)); // set new brush & store old
 
+		// Create rectangle of specified dimensions & draw
+		RECT rect = { left, top, right, bottom };
 		Rectangle(hdc, rect.left, rect.top, rect.right, rect.bottom);
 
-		SelectObject(hdc, hOldBrush);
-		DeleteObject(hBrush);
+		SelectObject(hdc, hOldBrush); // set old brush
+		DeleteObject(hBrush); // delete new brush
 
 		ReleaseDC(hwnd, hdc);
 	}

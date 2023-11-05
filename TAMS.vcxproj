@@ -134,7 +134,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="NewEngine.cpp" />
-    <ClCompile Include="OldEngine.cpp" />
     <ClCompile Include="TAMS.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
