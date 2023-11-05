@@ -1,10 +1,8 @@
-#include <iostream>
+﻿#include <iostream>
 #include <time.h>
 #include <vector>
 #include <map>
 #include <string>
-// Terminal Colors
-#include "rang.hpp"
 
 class Engine {
 	// ======================================== GLOBAL VARIABLES ========================================
@@ -15,8 +13,12 @@ public:
 		int field_height;
 		int mine_percentage; // in decimal form
 	};
-	// Global field variables
-	int difficulty = 0;
+
+	// ---------------------- Global fields ---------------------
+	std::vector<std::vector<int>> field_data;
+	std::vector<std::vector<int>> field_player;
+	const std::vector<std::vector<int>> field_empty;
+	// ----------------- Global field variables -----------------
 	Difficulty D_easy = { "easy", 10, 10, 12 };
 	Difficulty D_medium = { "medium", 15, 15, 15 };
 	Difficulty D_hard = { "hard", 30, 30, 15 };
@@ -26,33 +28,12 @@ public:
 	int FIELD_WIDTH;
 	int FIELD_HEIGHT;
 	int MINE_COUNT;
-
-	// Gameplay Variables
+	// ------------------- Gameplay Variables -------------------
 	bool kaboom = false;
-
-	// Global fields
-	std::vector<std::vector<int>> field_data;
-	std::vector<std::vector<int>> field_player;
-	const std::vector<std::vector<int>> field_empty;
-
-	// Global user variables
-	int FLAG_COUNT;
+	// ------------------ Global Player variables -----------------
+	int player_flag_count;
 
 	// ======================================== GAMEPLAY CHECKS ========================================
-public:
-	void tileHandler(int x, int y) {
-		switch (field_data[x][y]) {
-		case -2:
-			break;
-		case -1:
-			kaboom = true;
-		case 0:
-			recursiveAdjacentZeros(x, y);
-		default:
-			showTile(x, y);
-		}
-	}
-
 private:
 	// Initial coordinate values = user input for "click"
 	void recursiveAdjacentZeros(int x, int y) {
@@ -81,12 +62,17 @@ private:
 
 	// ======================================== FIELD GENERATION ========================================
 public:
+	// Entirely clear the fields to their default values
 	void resetFields() {
 		field_data = field_empty;
 		field_player = field_empty;
 	}
 
+	/**
+	* Generate the game board, which is split into the player's field and the background "data" field.
+	*/
 	void generateBoard() {
+		/*
 		std::cout << rang::style::bold << "Difficulty: " <<
 			rang::fg::green << "Easy (0) " <<
 			rang::fg::yellow << "Medium (1) " <<
@@ -95,25 +81,11 @@ public:
 			rang::fg::gray << "Custom (4) " <<
 			rang::style::reset;
 		std::cin >> difficulty;
-		switch (difficulty) {
-		case 0:
-			setDifficulty(D_easy);
-			break;
-		case 1:
-			setDifficulty(D_medium);
-			break;
-		case 2:
-			setDifficulty(D_hard);
-			break;
-		case 3:
-			setDifficulty(D_extreme);
-			break;
-		case 4:
-			setDifficulty(D_custom);
-			break;
-		}
+		*/
+		Difficulty difficulty = D_hard;
+		setDifficulty(difficulty);
 
-		FLAG_COUNT = MINE_COUNT;
+		player_flag_count = MINE_COUNT;
 
 		field_data = fieldInit<int>(0);
 		field_player = fieldInit<int>(0);
@@ -123,6 +95,12 @@ public:
 	}
 
 private:
+	/**
+	* Generate the positions for each of the bombs.
+	* TODO: initiate with selection so a bomb cannot be selected on the first click
+	* TODO: adjust the algorithm more similar to the minesweeper algorithm
+	*		try this: https://tait.tech/2020/09/12/minesweeper/
+	*/
 	void generateMines() {
 		srand(time(0)); // seed based on time for int randomizer
 		for (int i = 0; i < MINE_COUNT; i++) {
@@ -132,20 +110,23 @@ private:
 		}
 	}
 
+	/**
+	* Set the difficulty of the game, which determines the amount of mines in addition to the field size.
+	*/
 	void setDifficulty(Difficulty dif) {
 		if (dif.name == "custom") {
-			std::cout << rang::fg::cyan << rang::style::bold << "Field Width: " << rang::style::reset;
-			std::cin >> dif.field_width;
-			std::cout << rang::fg::cyan << rang::style::bold << "Field Hieght: " << rang::style::reset;
-			std::cin >> dif.field_height;
-			std::cout << rang::fg::red << rang::style::bold << "Mine Percentage: " << rang::style::reset;
-			std::cin >> dif.mine_percentage;
+			// Later
 		}
 		FIELD_WIDTH = dif.field_width;
 		FIELD_HEIGHT = dif.field_height;
 		MINE_COUNT = (FIELD_WIDTH * FIELD_HEIGHT) * ((float)dif.mine_percentage / 100);
 	}
 
+	/**
+	* Generates the field_data values based off of the previously generated mine values.
+	* Note: This algorithm is hell. Please do not touch unless you are ABSOLUTELY SURE of what you're doing.
+	*		This algorithm took me over weeks, working on it multiple times a week for a couple months
+	*/
 	void generateTileValues() {
 		int adjacent_mines;
 		// Iterate through the field tile-by-tile
@@ -171,73 +152,13 @@ private:
 		}
 	}
 
+	/**
+	* Initializes a new field, based upon the type provided.
+	* TODO?: Consider utilizing pointers for efficiency. Don't make this a priority
+	*/
 	template <typename T>
 	std::vector<std::vector<T>> fieldInit(T type_default) {
 		std::vector<std::vector<T>> new_field(FIELD_WIDTH, std::vector<T>(FIELD_HEIGHT, type_default));
 		return new_field;
-	}
-
-
-	// ======================================== DISPLAY ========================================
-public:
-	void fieldDisplayPlayer() {
-		for (int x = 0; x < FIELD_WIDTH; x++) {
-			for (int y = 0; y < FIELD_HEIGHT; y++) {
-				if (field_player[x][y] == 1) {
-					printTile(field_data[x][y]);
-				}
-				else {
-					printTile(0);
-				}
-			}
-			std::cout << '\n';
-		}
-	}
-
-	void fieldDisplayData() {
-		for (int x = 0; x < FIELD_WIDTH; x++) {
-			for (int y = 0; y < FIELD_HEIGHT; y++) {
-				printTile(field_data[x][y]);
-			}
-			std::cout << '\n';
-		}
-	}
-
-	void printTile(int tile) {
-		switch (tile) {
-		case -1: // mine
-			std::cout << " " << rang::bg::red << rang::style::bold << "@";
-			break;
-		case -2: // flag
-			// no idea yet
-			break;
-		case 0:
-			std::cout << " " << rang::fg::gray << "-";
-			break;
-		case 1:
-			std::cout << " " << rang::fg::cyan << rang::style::bold << tile;
-			break;
-		case 2:
-			std::cout << " " << rang::fg::green << rang::style::bold << tile;
-			break;
-		case 3:
-			std::cout << " " << rang::fg::yellow << rang::style::bold << tile;
-			break;
-		case 4:
-			std::cout << " " << rang::fg::red << rang::style::bold << tile;
-			break;
-		case 5:
-			std::cout << " " << rang::fg::magenta << rang::style::bold << tile;
-			break;
-		default:
-			std::cout << " " << rang::style::bold << tile;
-			break;
-		}
-		std::cout << rang::style::reset;
-	}
-
-private:
-	void showTile(int x, int y) {
-		field_player[x][y] = field_data[x][y];
 	}
 };

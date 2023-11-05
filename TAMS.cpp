@@ -1,30 +1,38 @@
-#include "Engine.cpp"
+#include "NewEngine.cpp"
+#include "Window.h"
+
+namespace Color {
+	COLORREF TEXT_DEFAULT_COLOR = RGB(255, 220, 217);
+	COLORREF BACKGROUND_COLOR = RGB(35, 35, 48);
+}
 
 using namespace std;
 
 int main() {
-	Engine Tams;
-	cout << rang::style::reset;
-
-	Tams.generateBoard();
-	
-	Tams.fieldDisplayData();
-
-	while (Tams.kaboom == false) {
-		int sel_x, sel_y;
-		cout << rang::fg::green << "// down first the over" << rang::style::reset << endl;
-		cout << rang::fg::cyan << rang::style::bold << "Selection (x): " << rang::style::reset;
-		cin >> sel_x;
-		cout << rang::fg::cyan << rang::style::bold << "Selection (y): " << rang::style::reset;
-		cin >> sel_y;
-
-		system("cls");
-
-		Tams.tileHandler(sel_x, sel_y);
-
-		Tams.fieldDisplayPlayer();
+	// ==================== Win32 Windows Creation for TUI Interface ====================
+	Window window;
+	if (!window.Initialize()) {
+		return -1;
 	}
-	system("pause");
+
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+
+		// ==================== TAMS Engine and Systems Initialization ====================
+		Engine Tams;
+		Tams.generateBoard();
+
+		window.RenderRect(0, 0, 800, 600, Color::BACKGROUND_COLOR);
+		window.RenderText(L"TEST", 0, 0, Color::TEXT_DEFAULT_COLOR, Color::BACKGROUND_COLOR);
+		window.RenderText(L"TEST", 0, 13, Color::TEXT_DEFAULT_COLOR, Color::BACKGROUND_COLOR);
+		window.RenderBorders(Color::TEXT_DEFAULT_COLOR);
+	}
+
+	window.Cleanup();
+
+	return 0;
 }
 /*   ========== TOP PRIORITY FEATURE ==========
 * - detect the tiles surrounding the 0's as well
