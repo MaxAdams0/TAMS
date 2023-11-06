@@ -114,8 +114,8 @@ bool Window::Initialize() {
 	};
 
 	MENU_TEXT_SIZE = 16;
-	MENU_TEXT_GAP_SIZE = 8;
-	WINDOW_BORDER_SIZE = 8;
+	MENU_TEXT_GAP_SIZE = 16;
+	WINDOW_BORDER_SIZE = 16;
 
 	return true;
 }
