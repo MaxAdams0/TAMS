@@ -135,6 +135,8 @@
   <ItemGroup>
     <ClCompile Include="NewEngine.cpp" />
     <ClCompile Include="TAMS.cpp" />
+    <ClCompile Include="Util.cpp" />
+    <ClCompile Include="Util.h" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

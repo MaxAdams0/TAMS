@@ -1,31 +1,46 @@
 #pragma once
 
 #include <windows.h>
+#include <string>
 #include <vector>
 
 class Window {
+public:
+	int MENU_TEXT_SIZE;
+	int MENU_TEXT_GAP_SIZE;
+	int WINDOW_BORDER_SIZE;
+
+private:
+	struct Sector {
+		int left;
+		int top;
+		int right;
+		int bottom;
+		bool focused;
+	};
+
+	struct WindowSize {
+		int width;
+		int height;
+	};
+
+	HWND hwnd;
+	HFONT GLOBAL_TEXT_FONT;
+	std::vector<Sector> windowSectors;
+
 public:
 	Window();
 	~Window();
 
 	bool Initialize();
-	void RenderText(const wchar_t* text, short x, short y, COLORREF textFgColor, COLORREF textBgColor);
-	void RenderRect(short left, short top, short right, short bottom, COLORREF color);
-	void RenderBorders(COLORREF borderColor);
-	void Cleanup();
+
+	void RenderText(const wchar_t* text, int x, int y, COLORREF textFgColor, COLORREF textBgColor);
+	void RenderRect(int left, int top, int right, int bottom, COLORREF color);
+	void RenderBorders(int thickness, COLORREF color);
+	void ClearWindow(COLORREF color);
+	COLORREF HexToRGB(const std::string& hexColor);
 
 private:
-	struct Sector {
-		const wchar_t* name;
-		short left;
-		short top;
-		short right;
-		short bottom;
-		short border_size;
-		bool focused;
-	};
-
-	HWND hwnd;
-	HFONT GLOBAL_TEXT_FONT;
-	std::vector<Sector> wnd_sectors;
+	WindowSize GetWindowSize();
+	void Cleanup();
 };

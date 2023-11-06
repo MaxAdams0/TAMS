@@ -1,13 +1,28 @@
 #include "Window.h"
+#include <string>
 #include <Windows.h>
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	if (uMsg == WM_CLOSE) {
-		PostQuitMessage(0);
-		return 0;
-	}
+	switch (uMsg) {
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			HDC hdc = BeginPaint(hwnd, &ps);
 
-	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+			// Set the background color
+			HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 0)); // Replace RGB values with your desired color
+			FillRect(hdc, &ps.rcPaint, hBrush);
+			DeleteObject(hBrush);
+
+			EndPaint(hwnd, &ps);
+			return 0;
+		}
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
+		default:
+			return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	}
 }
 
 Window::Window() : hwnd(NULL) {
@@ -29,15 +44,20 @@ Window::Window() : hwnd(NULL) {
 		FF_SWISS, // sans serif
 		"Verdana"
 	);
-
-	Window::wnd_sectors = {
-		{ L"Side", 0  , 0, 250, 600, 5, false },
-		{ L"Game", 250, 0, 800, 600, 5, false }
-	};
 }
 
 Window::~Window() {
 	Cleanup();
+}
+
+Window::WindowSize Window::GetWindowSize() {
+	HWND hwnd = GetForegroundWindow();  // Get the handle to the current active window
+	RECT windowRect;
+	GetWindowRect(hwnd, &windowRect);
+	WindowSize wsize;
+	wsize.width = windowRect.right - windowRect.left;
+	wsize.height = windowRect.bottom - windowRect.top;
+	return wsize;
 }
 
 bool Window::Initialize() {
@@ -53,7 +73,7 @@ bool Window::Initialize() {
 		NULL,
 		NULL,
 		NULL,
-		L"TAMS_window",
+		L"TAMS",
 		NULL
 	};
 	RegisterClassEx(&wc);
@@ -68,11 +88,34 @@ bool Window::Initialize() {
 		NULL,
 		NULL,
 		wc.hInstance,
-		this
+		NULL
 	);
 
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
+
+	WindowSize wndsize = GetWindowSize();
+
+	Window::windowSectors = {
+		{ 
+			0,
+			0,
+			250,
+			wndsize.height,
+			false 
+		},
+		{ 
+			250,
+			0,
+			wndsize.width,
+			wndsize.height,
+			false
+		}
+	};
+
+	MENU_TEXT_SIZE = 16;
+	MENU_TEXT_GAP_SIZE = 8;
+	WINDOW_BORDER_SIZE = 8;
 
 	return true;
 }
@@ -85,7 +128,7 @@ void Window::Cleanup() {
 	}
 }
 
-void Window::RenderText(const wchar_t* text, short x, short y, COLORREF textFgColor, COLORREF textBgColor) {
+void Window::RenderText(const wchar_t* text, int x, int y, COLORREF textFgColor, COLORREF textBgColor) {
 	HDC hdc = GetDC(hwnd);
 	if (hdc) {
 		HFONT hOldFont = static_cast<HFONT>( // store old (default) text font
@@ -93,7 +136,7 @@ void Window::RenderText(const wchar_t* text, short x, short y, COLORREF textFgCo
 		);
 		SetTextColor(hdc, textFgColor); // text (rgb) color
 		SetBkColor(hdc, textBgColor); // background color
-		SetBkMode(hdc, TRANSPARENT); // opaque or transparent
+		SetBkMode(hdc, OPAQUE); // opaque or transparent
 		TextOutW(hdc, x, y, text, wcslen(text)); // draw the text onto the window
 		SelectObject(hdc, hOldFont); // set old text font
 
@@ -101,7 +144,7 @@ void Window::RenderText(const wchar_t* text, short x, short y, COLORREF textFgCo
 	}
 }
 
-void Window::RenderRect(short left, short top, short right, short bottom, COLORREF color) {
+void Window::RenderRect(int left, int top, int right, int bottom, COLORREF color) {
 	HDC hdc = GetDC(hwnd);
 	if (hdc) {
 		HBRUSH hBrush = CreateSolidBrush(color); // create new brush
@@ -118,35 +161,36 @@ void Window::RenderRect(short left, short top, short right, short bottom, COLORR
 	}
 }
 
-void Window::RenderBorders(COLORREF borderColor) {
-	for (const Sector& sect : wnd_sectors) {
-		RenderRect( // top border
-			sect.left,
-			sect.top,
-			sect.right,
-			sect.top + sect.border_size,
-			borderColor
-		);
-		RenderRect( // left border
-			sect.left,
-			sect.top,
-			sect.left + sect.border_size,
-			sect.bottom,
-			borderColor
-		);
-		RenderRect( // bottom border
-			sect.left,
-			sect.bottom - sect.border_size,
-			sect.right,
-			sect.bottom,
-			borderColor
-		);
-		RenderRect( // right border
-			sect.right - sect.border_size,
-			sect.top,
-			sect.right,
-			sect.bottom,
-			borderColor
-		);
-	}
+void Window::RenderBorders(int thickness, COLORREF color) {
+	RECT windowRect;
+	GetClientRect(hwnd, &windowRect);
+
+	HWND hwnd = GetForegroundWindow();
+	HDC hdc = GetDC(hwnd);
+
+	// Create a solid brush with the border color
+	HBRUSH hbrBorder = CreateSolidBrush(color);
+
+	// Calculate the coordinates and dimensions of the border rectangles
+	RECT topRect = { 0, 0, windowRect.right - windowRect.left, thickness };
+	RECT bottomRect = { 0, windowRect.bottom - windowRect.top - thickness, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top };
+	RECT leftRect = { 0, 0, thickness, windowRect.bottom - windowRect.top };
+	RECT rightRect = { windowRect.right - windowRect.left - thickness, 0, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top };
+
+	// Draw the border rectangles
+	FillRect(hdc, &topRect, hbrBorder);
+	FillRect(hdc, &bottomRect, hbrBorder);
+	FillRect(hdc, &leftRect, hbrBorder);
+	FillRect(hdc, &rightRect, hbrBorder);
+
+	// Release resources
+	DeleteObject(hbrBorder);
+	ReleaseDC(hwnd, hdc);
+}
+
+void Window::ClearWindow(COLORREF color) {
+	RECT windowRect;
+	GetClientRect(hwnd, &windowRect);
+
+	RenderRect(windowRect.left, windowRect.top, windowRect.right, windowRect.bottom, color);
 }
