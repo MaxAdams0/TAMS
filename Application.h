@@ -4,28 +4,20 @@
 #include <string>
 #include <vector>
 
+#include "Sector.h"
+#include "Menu.h"
+
 class Application {
 public:
 	int WINDOW_BORDER_SIZE;
+	int SECTOR_GAP;
 
-	struct Menu
-	{
-		COLORREF defaultFgColor;
-		COLORREF defaultBgColor;
-		COLORREF selectedFgColor;
-		COLORREF selectedBgColor;
+	struct ScrollBar {
+		COLORREF barFgColor;
+		COLORREF barBgColor;
 
-		std::vector<const wchar_t*> options;
-		int selected;
-	};
-
-	struct Sector
-	{
-		COLORREF focusedColor;
-		COLORREF unfocusedColor;
-
-		RECT rect;
-		bool focused;
+		int width;
+		bool visible;
 	};
 
 private:
@@ -43,9 +35,9 @@ public:
 	void RenderBorders(int thickness, COLORREF color);
 	void RenderSector(Sector* sector);
 	void RenderMenu(Sector* sector, Menu* menu);
+	void RenderScollBar(Menu* menu, ScrollBar* bar);
 
 	void ClearWindow(COLORREF color);
-	void setOptionSelected(Menu* menu, int optNum);
 	RECT GetWindowSize();
 
 private:

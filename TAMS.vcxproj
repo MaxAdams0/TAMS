@@ -135,7 +135,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="NewEngine.cpp" />
+    <ClCompile Include="Sector.cpp" />
     <ClCompile Include="TAMS.cpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="Util.h" />
@@ -143,6 +145,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h" />
+    <ClInclude Include="Menu.h" />
+    <ClInclude Include="Sector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

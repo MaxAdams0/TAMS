@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "Menu.h"
 #include <string>
 #include <Windows.h>
 
@@ -24,7 +25,8 @@ Dev Note: This will eventually be configurable, but that is not a main priority 
 */
 Application::Application() : hwnd(NULL) {
 	MENU_TEXT_SIZE = 24;
-	MENU_TEXT_GAP_SIZE = MENU_TEXT_SIZE + 6;
+	MENU_TEXT_GAP_SIZE = MENU_TEXT_SIZE + 8;
+	SECTOR_GAP = 6;
 	WINDOW_BORDER_SIZE = 12;
 
 	// More Info
@@ -182,9 +184,8 @@ void Application::RenderSector(Sector* sector) {
 }
 
 void Application::RenderMenu(Sector* sector, Menu* menu) {
-	RECT sectorRect = sector->rect; // get rect of specified sector
-	int firstPosX = sectorRect.left + (WINDOW_BORDER_SIZE * 2);
-	int firstPosY = sectorRect.top + (WINDOW_BORDER_SIZE * 2);
+	int firstPosX = sector->rect.left + (SECTOR_GAP * 2);
+	int firstPosY = sector->rect.top + (SECTOR_GAP * 2);
 	for (int i = 0; i < menu->options.size(); i++) {
 		if (menu->selected == i) { // if it is the selected element
 			RenderText(
@@ -205,6 +206,13 @@ void Application::RenderMenu(Sector* sector, Menu* menu) {
 			);
 		}
 	}
+}
+
+void Application::RenderScollBar(Menu* menu, ScrollBar* bar) {
+	
+	
+	RECT sectorRect = sector->rect; // get rect of specified sector
+	int optionCount = menu->options.size();
 }
 
 // ============================== Utilities and Obfuscations To Simplify Reading ==============================
@@ -251,4 +259,13 @@ void Application::setOptionSelected(Menu* menu, int optNum) {
 	int max_size = menu->options.size()-1;
 	optNum = max(0, min(optNum, max_size)); // clamp between 0 and the # of options
 	menu->selected = optNum;
+}
+
+void Application::SetMenuRect(Sector* sector, Menu* menu) {
+	menu->rect = {
+		sector->rect.left + menu->offset,
+		sector->rect.top + menu->offset,
+		sector->rect.right - menu->offset,
+		sector->rect.bottom - menu->offset
+	}
 }
