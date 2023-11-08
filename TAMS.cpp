@@ -1,6 +1,6 @@
 /* TODO
-* - change border rendering to sector rendering
-*		- use ClearWindow for border, then sector dimensions to draw fg
+* - generate window without a terminal
+* - isolate the window class so it can be used in other projects / as a library 
 */
 
 
@@ -10,16 +10,16 @@
 
 using namespace std;
 
-int main() {
+// Required for the program to be counted as a Windows application, 
+// so it will not spawn a terminal along side it
+int main(void) {
 	// =========================== Win32 Windows Creation for TUI Interface ===========================
 	Window window;
-	if (!window.Initialize()) {
-		return -1;
-	}
 
 	// ==================================== Pre-Render UI Elements ====================================
-	window.ClearWindow(Util::Color::BG_T); // sets bg color
-	window.RenderBorders(window.WINDOW_BORDER_SIZE, Util::Color::FG_T);
+	window.ClearWindow(Util::Color::FG_T); // sets bg color
+	///window.RenderBorders(window.WINDOW_BORDER_SIZE, Util::Color::FG_T);
+	window.RenderSectors(Util::Color::BG_T);
 
 	for (int i = 0; i < 5; i++) {
 		window.RenderText(
