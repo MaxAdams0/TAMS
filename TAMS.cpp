@@ -12,7 +12,7 @@ using namespace std;
 
 // Required for the program to be counted as a Windows application, 
 // so it will not spawn a terminal along side it
-int main(void) {
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
 	// =========================== Win32 Windows Creation for TUI Interface ===========================
 	Window window;
 
