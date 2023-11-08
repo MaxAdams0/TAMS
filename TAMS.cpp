@@ -1,11 +1,12 @@
 /* TODO
-* - generate window without a terminal
+* - figure out a way to switch focused sectors
+*		- this will likely result in another major restructuring .-.
 * - isolate the window class so it can be used in other projects / as a library 
 */
 
 
 #include "NewEngine.cpp"
-#include "Window.h"
+#include "Application.h"
 #include "Util.h"
 
 using namespace std;
@@ -14,13 +15,86 @@ using namespace std;
 // so it will not spawn a terminal along side it
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
 	// =========================== Win32 Windows Creation for TUI Interface ===========================
-	Window window;
+	Application app;
+	Application::Menu sideMenu = {
+		Util::Color::PRIMARY_1,
+		Util::Color::BG_T,
+		Util::Color::BG_T,
+		Util::Color::PRIMARY_1,
+		{
+			L"Option 1",
+			L"Option 2",
+			L"Option 3",
+			L"Option 4",
+			L"Option 5"
+		},
+		0
+	};
+
+	RECT wndsize = app.GetWindowSize();
+	Application::Sector sideSector = {
+		Util::Color::BG_T,
+		Util::Color::BG_S,
+		{
+			0,
+			0,
+			250 - app.WINDOW_BORDER_SIZE,
+			wndsize.bottom - wndsize.top,
+		},
+		true
+	};
+	Application::Sector gameSector = {
+		Util::Color::BG_T,
+		Util::Color::BG_S,
+		{
+			250,
+			0,
+			wndsize.right - wndsize.left,
+			wndsize.bottom - wndsize.top,
+		},
+		false
+	};
 
 	// ==================================== Pre-Render UI Elements ====================================
-	window.ClearWindow(Util::Color::FG_T); // sets bg color
+	app.ClearWindow(Util::Color::FG_T); // sets bg color
 	///window.RenderBorders(window.WINDOW_BORDER_SIZE, Util::Color::FG_T);
-	window.RenderSectors(Util::Color::BG_T);
+	app.RenderSector(&sideSector);
+	app.RenderSector(&gameSector);
 
+	// ============================ TAMS Engine and Systems Initialization ============================
+	Engine Tams;
+	Tams.generateBoard();
+
+	MSG msg;
+	while (GetMessage(&msg, NULL, 0, 0)) 
+	{
+		app.RenderMenu(&sideSector, &sideMenu);
+
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+
+		if (msg.message == WM_KEYDOWN)
+		{
+			int key = static_cast<int>(msg.wParam);
+			switch (key) {
+			case VK_UP:
+				app.setOptionSelected(&sideMenu, --sideMenu.selected);
+				break;
+			case VK_DOWN:
+				app.setOptionSelected(&sideMenu, ++sideMenu.selected);
+				break;
+			case VK_ESCAPE:
+				PostQuitMessage(0);
+				break;
+			}
+		}
+	}
+
+	return 0;
+}
+
+
+/*
 	for (int i = 0; i < 5; i++) {
 		window.RenderText(
 			L"XXXXXXXX",
@@ -57,16 +131,4 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			Util::Color::complimentaryColors[i]
 		);
 	}
-
-	// ============================ TAMS Engine and Systems Initialization ============================
-	Engine Tams;
-	Tams.generateBoard();
-
-	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0)) {
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-
-	return 0;
-}
+	*/

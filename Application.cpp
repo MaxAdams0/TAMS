@@ -1,29 +1,20 @@
-#include "Window.h"
+#include "Application.h"
 #include <string>
 #include <Windows.h>
 
-// ======================================= Window Creation and Setup ========================================
+// ======================================= Application Creation and Setup ========================================
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
-		case WM_PAINT:
-		{
-			PAINTSTRUCT ps;
-			HDC hdc = BeginPaint(hwnd, &ps);
-
-			// Set the background color
-			HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 0)); // Replace RGB values with your desired color
-			FillRect(hdc, &ps.rcPaint, hBrush);
-			DeleteObject(hBrush);
-
-			EndPaint(hwnd, &ps);
-			return 0;
-		}
 		case WM_DESTROY:
+		{
 			PostQuitMessage(0);
 			return 0;
-		default:
+		}
+		default: 
+		{
 			return DefWindowProc(hwnd, uMsg, wParam, lParam);
+		}
 	}
 }
 
@@ -31,11 +22,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 Initialize the window with set parameters.
 Dev Note: This will eventually be configurable, but that is not a main priority on my list.
 */
-Window::Window() : hwnd(NULL) {
+Application::Application() : hwnd(NULL) {
+	MENU_TEXT_SIZE = 24;
+	MENU_TEXT_GAP_SIZE = MENU_TEXT_SIZE + 6;
+	WINDOW_BORDER_SIZE = 12;
+
 	// More Info
 	// https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-createfonta
-	Window::GLOBAL_TEXT_FONT = CreateFontA(
-		16, // height
+	Application::FONT = CreateFontA(
+		MENU_TEXT_SIZE, // height
 		0, // width, 0 = auto match closest balue
 		0,
 		0,
@@ -83,42 +78,16 @@ Window::Window() : hwnd(NULL) {
 
 	ShowWindow(hwnd, SW_SHOW);
 	UpdateWindow(hwnd);
-
-	MENU_TEXT_SIZE = 16;
-	MENU_TEXT_GAP_SIZE = 16;
-	WINDOW_BORDER_SIZE = 12;
-
-	RECT wndsize = GetWindowSize();
-	windowSectors = {
-		{
-			{
-				0,
-				0,
-				250 - WINDOW_BORDER_SIZE,
-				wndsize.bottom - wndsize.top,
-			},
-			false
-		},
-		{
-			{
-				250,
-				0,
-				wndsize.right - wndsize.left,
-				wndsize.bottom - wndsize.top,
-			},
-			false
-		}
-	};
 }
 
-Window::~Window() {
+Application::~Application() {
 	Cleanup();
 }
 
 /*
 Destroys the current window and completes other processes when closing the window.
 */
-void Window::Cleanup() {
+void Application::Cleanup() {
 	if (hwnd) {
 		DestroyWindow(hwnd);
 		UnregisterClass(L"TAMS_window", GetModuleHandle(NULL));
@@ -131,11 +100,11 @@ void Window::Cleanup() {
 /*
 Draws a piece of text on the screen at a given position.
 */
-void Window::RenderText(const wchar_t* text, int x, int y, COLORREF textFgColor, COLORREF textBgColor) {
+void Application::RenderText(const wchar_t* text, int x, int y, COLORREF textFgColor, COLORREF textBgColor) {
 	HDC hdc = GetDC(hwnd);
 	if (hdc) {
 		HFONT hOldFont = static_cast<HFONT>( // store old (default) text font
-			SelectObject(hdc, Window::GLOBAL_TEXT_FONT) // set correct text font
+			SelectObject(hdc, Application::FONT) // set correct text font
 		);
 		SetTextColor(hdc, textFgColor); // text (rgb) color
 		SetBkColor(hdc, textBgColor); // background color
@@ -151,7 +120,7 @@ void Window::RenderText(const wchar_t* text, int x, int y, COLORREF textFgColor,
 Draws a rectangle on the screen. This is different from the built-in windows.h 'Rectangle()', 'FillRect()',
 and other functions, as it handles setup for you (creating brush, clipping input, etc.)
 */
-void Window::RenderRect(RECT rect, COLORREF color) {
+void Application::RenderRect(RECT rect, COLORREF color) {
 	HDC hdc = GetDC(hwnd);
 	if (hdc) {
 		HBRUSH hBrush = CreateSolidBrush(color); // create new brush
@@ -167,7 +136,7 @@ void Window::RenderRect(RECT rect, COLORREF color) {
 	}
 }
 
-void Window::RenderBorders(int thickness, COLORREF color) {
+void Application::RenderBorders(int thickness, COLORREF color) {
 	RECT windowRect = GetWindowSize();
 
 	HWND hwnd = GetForegroundWindow();
@@ -196,17 +165,45 @@ void Window::RenderBorders(int thickness, COLORREF color) {
 /*
 Renders the sectors in the current environment.
 */
-void Window::RenderSectors(COLORREF color) {
+void Application::RenderSector(Sector* sector) {
 	HDC hdc = GetDC(hwnd);
 
 	if (hdc) {
-		for (const Sector& sector : windowSectors) {
-			RECT dupe = sector.rect;
-			ClampToUsableWindow(&dupe);
-			RenderRect(dupe, color);
+		ClampToUsableWindow(&sector->rect);
+		if (sector->focused) {
+			RenderRect(sector->rect, sector->focusedColor);
+		}
+		else {
+			RenderRect(sector->rect, sector->unfocusedColor);
 		}
 
 		ReleaseDC(hwnd, hdc);
+	}
+}
+
+void Application::RenderMenu(Sector* sector, Menu* menu) {
+	RECT sectorRect = sector->rect; // get rect of specified sector
+	int firstPosX = sectorRect.left + (WINDOW_BORDER_SIZE * 2);
+	int firstPosY = sectorRect.top + (WINDOW_BORDER_SIZE * 2);
+	for (int i = 0; i < menu->options.size(); i++) {
+		if (menu->selected == i) { // if it is the selected element
+			RenderText(
+				menu->options.at(i), // name
+				firstPosX, // posX does not need, it is in a straight column
+				firstPosY + (i * MENU_TEXT_GAP_SIZE), // first positionY + size of gap required to get space
+				menu->selectedFgColor,
+				menu->selectedBgColor
+			);
+		}
+		else { // if it is not the selected element
+			RenderText(
+				menu->options.at(i),
+				firstPosX,
+				firstPosY + (i * MENU_TEXT_GAP_SIZE),
+				menu->defaultFgColor,
+				menu->defaultBgColor
+			);
+		}
 	}
 }
 
@@ -217,7 +214,7 @@ Clamps the input to the window's size. This is to make sure that it does not ren
 of the view of the window.
 Note: you cannot pass 'const RECT's, since this function modifies the given parameter
 */
-void Window::ClampToUsableWindow(RECT *rect) {
+void Application::ClampToUsableWindow(RECT *rect) {
 	RECT windowRect = GetWindowSize(); // get size of window
 	// Calculate the clipping area for sectors based on the window's borders
 	int clipLeft = WINDOW_BORDER_SIZE;
@@ -235,7 +232,7 @@ void Window::ClampToUsableWindow(RECT *rect) {
 Sets the entire window to a single color, effectively clearing the screen
 Dev Note: I don't think I need to clamp this, right?
 */
-void Window::ClearWindow(COLORREF color) {
+void Application::ClearWindow(COLORREF color) {
 	RECT windowRect = GetWindowSize();
 	RenderRect(windowRect, color);
 }
@@ -243,9 +240,15 @@ void Window::ClearWindow(COLORREF color) {
 /*
 Gets the current active window's visible size in pixels.
 */
-RECT Window::GetWindowSize() {
+RECT Application::GetWindowSize() {
 	HWND hwnd = GetForegroundWindow();  // Get the handle to the current active window
 	RECT windowRect;
 	GetClientRect(hwnd, &windowRect);
 	return windowRect;
+}
+
+void Application::setOptionSelected(Menu* menu, int optNum) {
+	int max_size = menu->options.size()-1;
+	optNum = max(0, min(optNum, max_size)); // clamp between 0 and the # of options
+	menu->selected = optNum;
 }
