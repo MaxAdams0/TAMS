@@ -4,10 +4,14 @@
 * - isolate the window class so it can be used in other projects / as a library 
 */
 
-
-#include "NewEngine.cpp"
+// Custom UI Library (I need a name)
 #include "Application.h"
+#include "Sector.h"
+#include "Menu.h"
 #include "Util.h"
+// Minesweeper Game Engine
+#include "NewEngine.cpp"
+
 
 using namespace std;
 
@@ -15,24 +19,10 @@ using namespace std;
 // so it will not spawn a terminal along side it
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) {
 	// =========================== Win32 Windows Creation for TUI Interface ===========================
-	Application app;
-	Application::Menu sideMenu = {
-		Util::Color::PRIMARY_1,
-		Util::Color::BG_T,
-		Util::Color::BG_T,
-		Util::Color::PRIMARY_1,
-		{
-			L"Option 1",
-			L"Option 2",
-			L"Option 3",
-			L"Option 4",
-			L"Option 5"
-		},
-		0
-	};
-
+	Application app; // Creates default window and initializes variables to their default values
 	RECT wndsize = app.GetWindowSize();
-	Application::Sector sideSector = {
+	// Creates the left section of the screen, which will be used for the game menu
+	Sector leftSector(
 		Util::Color::BG_T,
 		Util::Color::BG_S,
 		{
@@ -42,8 +32,11 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			wndsize.bottom - wndsize.top,
 		},
 		true
-	};
-	Application::Sector gameSector = {
+	);
+	// Creates the right section of the screen, which will be used for the game itself
+	// Please note that this will not render anything, and by itself will do nothing
+	// It simply just creates the variables necissary for creating the ui's functionality and looks
+	Sector gameSector(
 		Util::Color::BG_T,
 		Util::Color::BG_S,
 		{
@@ -53,13 +46,43 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			wndsize.bottom - wndsize.top,
 		},
 		false
-	};
+	);
+
+	Menu sideMenu(
+		Util::Color::PRIMARY_1,
+		Util::Color::BG_T,
+		Util::Color::BG_T,
+		Util::Color::PRIMARY_1,
+		app.SECTOR_GAP,
+		{ // options
+			L"Option 1",
+			L"Option 2",
+			L"Option 3",
+			L"Option 4",
+			L"Option 5",
+			L"Option 6",
+			L"Option 7",
+			L"Option 8",
+			L"Option 9",
+			L"Option 10",
+			L"Option 11",
+			L"Option 12",
+			L"Option 13",
+			L"Option 14",
+			L"Option 15",
+			L"Option 16",
+			L"Option 17",
+			L"Option 18",
+			L"Option 19",
+			L"Option 20",
+		}
+	);
 
 	// ==================================== Pre-Render UI Elements ====================================
 	app.ClearWindow(Util::Color::FG_T); // sets bg color
 	///window.RenderBorders(window.WINDOW_BORDER_SIZE, Util::Color::FG_T);
-	app.RenderSector(&sideSector);
-	app.RenderSector(&gameSector);
+	app.RenderSector(leftSector);
+	app.RenderSector(gameSector);
 
 	// ============================ TAMS Engine and Systems Initialization ============================
 	Engine Tams;
@@ -68,7 +91,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{
-		app.RenderMenu(&sideSector, &sideMenu);
+		app.RenderMenu(leftSector, sideMenu);
 
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -78,10 +101,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			int key = static_cast<int>(msg.wParam);
 			switch (key) {
 			case VK_UP:
-				app.setOptionSelected(&sideMenu, --sideMenu.selected);
+				sideMenu.SetSelected(--sideMenu.selected);
 				break;
 			case VK_DOWN:
-				app.setOptionSelected(&sideMenu, ++sideMenu.selected);
+				sideMenu.SetSelected(++sideMenu.selected);
 				break;
 			case VK_ESCAPE:
 				PostQuitMessage(0);

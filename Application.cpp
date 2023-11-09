@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "Menu.h"
 #include <string>
 #include <Windows.h>
 
@@ -24,7 +25,8 @@ Dev Note: This will eventually be configurable, but that is not a main priority 
 */
 Application::Application() : hwnd(NULL) {
 	MENU_TEXT_SIZE = 24;
-	MENU_TEXT_GAP_SIZE = MENU_TEXT_SIZE + 6;
+	MENU_TEXT_GAP_SIZE = MENU_TEXT_SIZE + 8;
+	SECTOR_GAP = 6;
 	WINDOW_BORDER_SIZE = 12;
 
 	// More Info
@@ -81,13 +83,6 @@ Application::Application() : hwnd(NULL) {
 }
 
 Application::~Application() {
-	Cleanup();
-}
-
-/*
-Destroys the current window and completes other processes when closing the window.
-*/
-void Application::Cleanup() {
 	if (hwnd) {
 		DestroyWindow(hwnd);
 		UnregisterClass(L"TAMS_window", GetModuleHandle(NULL));
@@ -165,43 +160,42 @@ void Application::RenderBorders(int thickness, COLORREF color) {
 /*
 Renders the sectors in the current environment.
 */
-void Application::RenderSector(Sector* sector) {
+void Application::RenderSector(Sector& sector) {
 	HDC hdc = GetDC(hwnd);
 
 	if (hdc) {
-		ClampToUsableWindow(&sector->rect);
-		if (sector->focused) {
-			RenderRect(sector->rect, sector->focusedColor);
+		ClampToUsableWindow(&sector.rect);
+		if (sector.focused) {
+			RenderRect(sector.rect, sector.focusedColor); // focused color is first
 		}
 		else {
-			RenderRect(sector->rect, sector->unfocusedColor);
+			RenderRect(sector.rect, sector.unfocusedColor); // unfocused color is second
 		}
 
 		ReleaseDC(hwnd, hdc);
 	}
 }
 
-void Application::RenderMenu(Sector* sector, Menu* menu) {
-	RECT sectorRect = sector->rect; // get rect of specified sector
-	int firstPosX = sectorRect.left + (WINDOW_BORDER_SIZE * 2);
-	int firstPosY = sectorRect.top + (WINDOW_BORDER_SIZE * 2);
-	for (int i = 0; i < menu->options.size(); i++) {
-		if (menu->selected == i) { // if it is the selected element
+void Application::RenderMenu(Sector& sector, Menu& menu) {
+	int firstPosX = sector.rect.left + (SECTOR_GAP * 2);
+	int firstPosY = sector.rect.top + (SECTOR_GAP * 2);
+	for (int i = 0; i < menu.options.size(); i++) {
+		if (menu.selected == i) { // if it is the selected element
 			RenderText(
-				menu->options.at(i), // name
+				menu.options.at(i), // name
 				firstPosX, // posX does not need, it is in a straight column
 				firstPosY + (i * MENU_TEXT_GAP_SIZE), // first positionY + size of gap required to get space
-				menu->selectedFgColor,
-				menu->selectedBgColor
+				menu.selectedFgColor,
+				menu.selectedBgColor
 			);
 		}
 		else { // if it is not the selected element
 			RenderText(
-				menu->options.at(i),
+				menu.options.at(i),
 				firstPosX,
 				firstPosY + (i * MENU_TEXT_GAP_SIZE),
-				menu->defaultFgColor,
-				menu->defaultBgColor
+				menu.defaultFgColor,
+				menu.defaultBgColor
 			);
 		}
 	}
@@ -245,10 +239,4 @@ RECT Application::GetWindowSize() {
 	RECT windowRect;
 	GetClientRect(hwnd, &windowRect);
 	return windowRect;
-}
-
-void Application::setOptionSelected(Menu* menu, int optNum) {
-	int max_size = menu->options.size()-1;
-	optNum = max(0, min(optNum, max_size)); // clamp between 0 and the # of options
-	menu->selected = optNum;
 }
