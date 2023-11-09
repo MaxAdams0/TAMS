@@ -83,13 +83,6 @@ Application::Application() : hwnd(NULL) {
 }
 
 Application::~Application() {
-	Cleanup();
-}
-
-/*
-Destroys the current window and completes other processes when closing the window.
-*/
-void Application::Cleanup() {
 	if (hwnd) {
 		DestroyWindow(hwnd);
 		UnregisterClass(L"TAMS_window", GetModuleHandle(NULL));
@@ -167,52 +160,45 @@ void Application::RenderBorders(int thickness, COLORREF color) {
 /*
 Renders the sectors in the current environment.
 */
-void Application::RenderSector(Sector* sector) {
+void Application::RenderSector(Sector& sector) {
 	HDC hdc = GetDC(hwnd);
 
 	if (hdc) {
-		ClampToUsableWindow(&sector->rect);
-		if (sector->focused) {
-			RenderRect(sector->rect, sector->focusedColor);
+		ClampToUsableWindow(&sector.rect);
+		if (sector.focused) {
+			RenderRect(sector.rect, sector.focusedColor); // focused color is first
 		}
 		else {
-			RenderRect(sector->rect, sector->unfocusedColor);
+			RenderRect(sector.rect, sector.unfocusedColor); // unfocused color is second
 		}
 
 		ReleaseDC(hwnd, hdc);
 	}
 }
 
-void Application::RenderMenu(Sector* sector, Menu* menu) {
-	int firstPosX = sector->rect.left + (SECTOR_GAP * 2);
-	int firstPosY = sector->rect.top + (SECTOR_GAP * 2);
-	for (int i = 0; i < menu->options.size(); i++) {
-		if (menu->selected == i) { // if it is the selected element
+void Application::RenderMenu(Sector& sector, Menu& menu) {
+	int firstPosX = sector.rect.left + (SECTOR_GAP * 2);
+	int firstPosY = sector.rect.top + (SECTOR_GAP * 2);
+	for (int i = 0; i < menu.options.size(); i++) {
+		if (menu.selected == i) { // if it is the selected element
 			RenderText(
-				menu->options.at(i), // name
+				menu.options.at(i), // name
 				firstPosX, // posX does not need, it is in a straight column
 				firstPosY + (i * MENU_TEXT_GAP_SIZE), // first positionY + size of gap required to get space
-				menu->selectedFgColor,
-				menu->selectedBgColor
+				menu.selectedFgColor,
+				menu.selectedBgColor
 			);
 		}
 		else { // if it is not the selected element
 			RenderText(
-				menu->options.at(i),
+				menu.options.at(i),
 				firstPosX,
 				firstPosY + (i * MENU_TEXT_GAP_SIZE),
-				menu->defaultFgColor,
-				menu->defaultBgColor
+				menu.defaultFgColor,
+				menu.defaultBgColor
 			);
 		}
 	}
-}
-
-void Application::RenderScollBar(Menu* menu, ScrollBar* bar) {
-	
-	
-	RECT sectorRect = sector->rect; // get rect of specified sector
-	int optionCount = menu->options.size();
 }
 
 // ============================== Utilities and Obfuscations To Simplify Reading ==============================
@@ -253,19 +239,4 @@ RECT Application::GetWindowSize() {
 	RECT windowRect;
 	GetClientRect(hwnd, &windowRect);
 	return windowRect;
-}
-
-void Application::setOptionSelected(Menu* menu, int optNum) {
-	int max_size = menu->options.size()-1;
-	optNum = max(0, min(optNum, max_size)); // clamp between 0 and the # of options
-	menu->selected = optNum;
-}
-
-void Application::SetMenuRect(Sector* sector, Menu* menu) {
-	menu->rect = {
-		sector->rect.left + menu->offset,
-		sector->rect.top + menu->offset,
-		sector->rect.right - menu->offset,
-		sector->rect.bottom - menu->offset
-	}
 }

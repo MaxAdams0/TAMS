@@ -1,16 +1,28 @@
 #include "Menu.h"
 
-Menu::Menu(COLORREF defFgColor, COLORREF defBgColor, COLORREF selFgColor,
-			COLORREF selBgColor, int offset, std::vector<const wchar_t*> options) {
-
-	this->defFgColor = defFgColor;
-	this->defBgColor = defBgColor;
-	this->selFgColor = selFgColor;
-	this->selBgColor = selBgColor;
+Menu::Menu(
+	COLORREF defaultFgColor,
+	COLORREF defaultBgColor,
+	COLORREF selectedFgColor,
+	COLORREF selectedBgColor,
+	int offset,
+	std::vector<const wchar_t*> options
+) : parentSector(parentSector)
+{
+	this->defaultFgColor = defaultFgColor;
+	this->defaultBgColor = defaultBgColor;
+	this->selectedFgColor = selectedFgColor;
+	this->selectedBgColor = selectedBgColor;
 	this->offset = offset;
 	this->options = options;
 
-	this->rect; // work on sector first
+	RECT parentSectorRect = parentSector.GetRect();
+	this->rect = {
+		parentSectorRect.left + this->offset,
+		parentSectorRect.top + this->offset,
+		parentSectorRect.right - this->offset,
+		parentSectorRect.bottom - this->offset
+	};
 }
 
 Menu::~Menu() {

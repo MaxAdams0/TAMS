@@ -11,6 +11,8 @@ class Application {
 public:
 	int WINDOW_BORDER_SIZE;
 	int SECTOR_GAP;
+	int MENU_TEXT_SIZE;
+	int MENU_TEXT_GAP_SIZE;
 
 	struct ScrollBar {
 		COLORREF barFgColor;
@@ -24,24 +26,21 @@ private:
 	HWND hwnd;
 	HFONT FONT;
 
-	int MENU_TEXT_SIZE;
-	int MENU_TEXT_GAP_SIZE;
-
 public:
 	Application();
 	~Application();
 
+	RECT GetWindowSize();
+
 	void RenderText(const wchar_t* text, int x, int y, COLORREF textFgColor, COLORREF textBgColor);
 	void RenderBorders(int thickness, COLORREF color);
-	void RenderSector(Sector* sector);
-	void RenderMenu(Sector* sector, Menu* menu);
-	void RenderScollBar(Menu* menu, ScrollBar* bar);
+	void RenderSector(Sector& sector);
+	void RenderMenu(Sector& sector, Menu& menu);
+	//void RenderScollBar(Menu& menu, ScrollBar& bar);
 
 	void ClearWindow(COLORREF color);
-	RECT GetWindowSize();
 
 private:
 	void RenderRect(RECT rect, COLORREF color);
 	void ClampToUsableWindow(RECT* rect);
-	void Cleanup();
 };

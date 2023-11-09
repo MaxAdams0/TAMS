@@ -1,10 +1,10 @@
 #pragma once
 
+#include <windows.h>
 #include <array>
-#include "Application.h"
 
-class Sector : private Application {
-private:
+class Sector {
+public:
 	COLORREF focusedColor;
 	COLORREF unfocusedColor;
 
@@ -15,14 +15,7 @@ public:
 	Sector(COLORREF focusedColor, COLORREF unfocusedColor, RECT rect, bool focused);
 	~Sector();
 
-	RECT getRect() const {
+	RECT GetRect() const {
 		return this->rect;
-	};
-
-	std::array<COLORREF, 2> getColors() const {
-		return {
-			this->focusedColor,
-			this->unfocusedColor
-		};
-	};
+	}
 };
