@@ -6,12 +6,12 @@
 
 // Custom UI Library (I need a name)
 #include "Application.h"
-#include "Sector.h"
-#include "Menu.h"
 #include "Util.h"
 // Minesweeper Game Engine
 #include "NewEngine.cpp"
 
+// conda activate base
+// python class_view.py "C:\dev\C++\TAMS" "C:\dev\C++\TAMS\class_hierarchy"
 
 using namespace std;
 
@@ -23,37 +23,43 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	RECT wndsize = app.GetWindowSize();
 	// Creates the left section of the screen, which will be used for the game menu
 	Sector leftSector(
-		Util::Color::BG_T,
-		Util::Color::BG_S,
-		{
+		{ // rect
 			0,
 			0,
 			250 - app.WINDOW_BORDER_SIZE,
 			wndsize.bottom - wndsize.top,
 		},
+		{ // colors
+				Util::Color::BG_T,
+				Util::Color::BG_S
+		},
 		true
 	);
+	RECT leftSectorRect = leftSector.GetRect();
+	app.ClampToUsableWindow(&leftSectorRect);
+	leftSector.SetRect(leftSectorRect);
+
 	// Creates the right section of the screen, which will be used for the game itself
 	// Please note that this will not render anything, and by itself will do nothing
 	// It simply just creates the variables necissary for creating the ui's functionality and looks
 	Sector gameSector(
-		Util::Color::BG_T,
-		Util::Color::BG_S,
-		{
+		{ // rect
 			250,
 			0,
 			wndsize.right - wndsize.left,
 			wndsize.bottom - wndsize.top,
 		},
+		{ // colors
+				Util::Color::BG_T,
+				Util::Color::BG_S
+		},
 		false
 	);
+	RECT gameSectorRect = gameSector.GetRect();
+	app.ClampToUsableWindow(&gameSectorRect);
+	gameSector.SetRect(gameSectorRect);
 
 	Menu sideMenu(
-		Util::Color::PRIMARY_1,
-		Util::Color::BG_T,
-		Util::Color::BG_T,
-		Util::Color::PRIMARY_1,
-		app.SECTOR_GAP,
 		{ // options
 			L"Option 1",
 			L"Option 2",
@@ -75,8 +81,24 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			L"Option 18",
 			L"Option 19",
 			L"Option 20",
-		}
+		},
+		{ // colors
+			Util::Color::PRIMARY_1,
+			Util::Color::BG_T,
+			Util::Color::BG_T,
+			Util::Color::PRIMARY_1
+		},
+		app.SECTOR_GAP,
+		0
 	);
+	leftSector.SetMenuRect(sideMenu);
+
+	ScrollBar scrollBar = {
+		Util::Color::COMPLEMENTARY_2,
+		Util::Color::COMPLEMENTARY_5,
+		12,
+		true
+	};
 
 	// ==================================== Pre-Render UI Elements ====================================
 	app.ClearWindow(Util::Color::FG_T); // sets bg color
@@ -92,6 +114,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{
 		app.RenderMenu(leftSector, sideMenu);
+		app.RenderScrollBar(sideMenu, scrollBar);
 
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -101,10 +124,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			int key = static_cast<int>(msg.wParam);
 			switch (key) {
 			case VK_UP:
-				sideMenu.SetSelected(--sideMenu.selected);
+				sideMenu.SetSelected(sideMenu.GetSelected() - 1);
 				break;
 			case VK_DOWN:
-				sideMenu.SetSelected(++sideMenu.selected);
+				sideMenu.SetSelected(sideMenu.GetSelected() + 1);
 				break;
 			case VK_ESCAPE:
 				PostQuitMessage(0);
@@ -154,4 +177,4 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			Util::Color::complimentaryColors[i]
 		);
 	}
-	*/
+*/

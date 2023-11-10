@@ -1,36 +1,48 @@
 #pragma once
 
-#include "Sector.h"
+#include <Windows.h>
 #include <vector>
 
+#include "ScrollBar.h"
+
 class Menu {
-public:
-	COLORREF defaultFgColor;
-	COLORREF defaultBgColor;
-	COLORREF selectedFgColor;
-	COLORREF selectedBgColor;
-	int offset; // the positional/size difference from the parent sector
-	RECT rect;
-
-	std::vector<const wchar_t*> options;
-	int selected;
-
 private:
-	Sector& parentSector;
+	struct Colors {
+		COLORREF defaultFgColor;
+		COLORREF defaultBgColor;
+		COLORREF selectedFgColor;
+		COLORREF selectedBgColor;
+	};
+	
+	std::vector<const wchar_t*> options;
+	RECT rect;
+	Colors colors;
+	int offset; // the positional/size difference from the parent sector
+	int selected;
 
 public:
 	Menu(
-		COLORREF defaultFgColor,
-		COLORREF defaultBgColor,
-		COLORREF selectedFgColor,
-		COLORREF selectedBgColor,
+		std::vector<const wchar_t*> options,
+		Colors colors,
 		int offset,
-		std::vector<const wchar_t*> options
-	);
-	~Menu();
+		int selected
+	) : options(options),
+		rect({0,0,0,0}), // there is no NULL option for RECT type, so initialize with all zeroes
+		colors(colors),
+		offset(offset),
+		selected(selected)
+	{
 
-	int GetSelected() const {
-		return this->selected;
+	}
+
+	~Menu()
+	{
+
+	}
+
+	// ======================================== Setters ========================================
+	void SetRect(RECT rect) {
+		this->rect = rect;
 	}
 
 	void SetSelected(int optNum) {
@@ -38,4 +50,26 @@ public:
 		optNum = max(0, min(optNum, max_size)); // clamp between 0 and the # of options
 		this->selected = optNum;
 	}
+
+	// ======================================== Getters ========================================
+	std::vector<const wchar_t*> GetOptions() const {
+		return this->options;
+	}
+
+	RECT GetRect() const {
+		return this->rect;
+	}
+	
+	Colors GetColors() const {
+		return this->colors;
+	}
+	
+	int GetOffset() const {
+		return this->offset;
+	}
+
+	int GetSelected() const {
+		return this->selected;
+	}
+
 };
