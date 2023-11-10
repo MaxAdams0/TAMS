@@ -24,7 +24,7 @@ public:
 		colors(colors),
 		focused(focused)
 	{
-
+		
 	}
 
 	~Sector()

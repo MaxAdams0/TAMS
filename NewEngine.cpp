@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <algorithm>
 
 class Engine {
 	// ======================================== GLOBAL VARIABLES ========================================
@@ -36,34 +37,34 @@ public:
 	// ======================================== GAMEPLAY CHECKS ========================================
 private:
 	// Initial coordinate values = user input for "click"
-	void recursiveAdjacentZeros(int x, int y) {
+	void RecursiveAdjacentZeros(int x, int y) {
 		field_player[x][y] = 1;
 		// ---------- north ----------
 		int new_y = (y + 1 < FIELD_HEIGHT - 1) ? y + 1 : y;
 		if (field_data[x][new_y] == 0 && field_player[x][new_y] == 0) {
-			recursiveAdjacentZeros(x, new_y);
+			RecursiveAdjacentZeros(x, new_y);
 		}
 		// ---------- east ----------
 		int new_x = (x + 1 < FIELD_WIDTH - 1) ? x + 1 : x;
 		if (field_data[new_x][y] == 0 && field_player[new_x][y] == 0) {
-			recursiveAdjacentZeros(new_x, y);
+			RecursiveAdjacentZeros(new_x, y);
 		}
 		// ---------- south ----------
 		new_y = (y - 1 >= 0) ? y - 1 : y;
 		if (field_data[x][new_y] == 0 && field_player[x][new_y] == 0) {
-			recursiveAdjacentZeros(x, new_y);
+			RecursiveAdjacentZeros(x, new_y);
 		}
 		// ---------- west ----------
 		new_x = (x - 1 >= 0) ? x - 1 : x;
 		if (field_data[new_x][y] == 0 && field_player[new_x][y] == 0) {
-			recursiveAdjacentZeros(new_x, y);
+			RecursiveAdjacentZeros(new_x, y);
 		}
 	}
 
 	// ======================================== FIELD GENERATION ========================================
 public:
 	// Entirely clear the fields to their default values
-	void resetFields() {
+	void ResetFields() {
 		field_data = field_empty;
 		field_player = field_empty;
 	}
@@ -71,7 +72,7 @@ public:
 	/**
 	* Generate the game board, which is split into the player's field and the background "data" field.
 	*/
-	void generateBoard() {
+	void GenerateBoard() {
 		/*
 		std::cout << rang::style::bold << "Difficulty: " <<
 			rang::fg::green << "Easy (0) " <<
@@ -83,26 +84,31 @@ public:
 		std::cin >> difficulty;
 		*/
 		Difficulty difficulty = D_hard;
-		setDifficulty(difficulty);
+		SetDifficulty(difficulty);
 
 		player_flag_count = MINE_COUNT;
 
 		field_data = fieldInit<int>(0);
 		field_player = fieldInit<int>(0);
 
-		generateMines();
-		generateTileValues();
+		GenerateMines();
+		GenerateTileValues();
 	}
 
 private:
+	template <typename T>
+	T Clamp(const T& value, const T& min, const T& max) {
+		return std::min(std::max(value, min), max);
+	}
+
 	/**
 	* Generate the positions for each of the bombs.
 	* TODO: initiate with selection so a bomb cannot be selected on the first click
 	* TODO: adjust the algorithm more similar to the minesweeper algorithm
 	*		try this: https://tait.tech/2020/09/12/minesweeper/
 	*/
-	void generateMines() {
-		srand(time(0)); // seed based on time for int randomizer
+	void GenerateMines() {
+		srand(static_cast<unsigned int>(time(0))); // seed based on time for int randomizer
 		for (int i = 0; i < MINE_COUNT; i++) {
 			int x = rand() % FIELD_HEIGHT;
 			int y = rand() % FIELD_WIDTH;
@@ -113,13 +119,13 @@ private:
 	/**
 	* Set the difficulty of the game, which determines the amount of mines in addition to the field size.
 	*/
-	void setDifficulty(Difficulty dif) {
+	void SetDifficulty(Difficulty dif) {
 		if (dif.name == "custom") {
 			// Later
 		}
 		FIELD_WIDTH = dif.field_width;
 		FIELD_HEIGHT = dif.field_height;
-		MINE_COUNT = (FIELD_WIDTH * FIELD_HEIGHT) * ((float)dif.mine_percentage / 100);
+		MINE_COUNT = (FIELD_WIDTH * FIELD_HEIGHT) * (dif.mine_percentage / 100);
 	}
 
 	/**
@@ -127,7 +133,7 @@ private:
 	* Note: This algorithm is hell. Please do not touch unless you are ABSOLUTELY SURE of what you're doing.
 	*		This algorithm took me over weeks, working on it multiple times a week for a couple months
 	*/
-	void generateTileValues() {
+	void GenerateTileValues() {
 		int adjacent_mines;
 		// Iterate through the field tile-by-tile
 		for (int x = 0; x < FIELD_WIDTH; x++) {
@@ -138,7 +144,9 @@ private:
 					for (int dy = (y > 0 ? -1 : 0); dy <= (y < FIELD_HEIGHT - 1 ? 1 : 0); ++dy) {
 						// forgot what this did
 						if (dx != 0 || dy != 0) {
-							if (field_data[x + dx][y + dy] == -1) {
+							int clampedX = Clamp<int>(x + dx, 0, FIELD_WIDTH);
+							int clampedY = Clamp<int>(y + dy, 0, FIELD_HEIGHT);
+							if (field_data[clampedX][clampedY] == -1) {
 								adjacent_mines++;
 							}
 						}

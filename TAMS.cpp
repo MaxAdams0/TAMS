@@ -8,7 +8,7 @@
 #include "Application.h"
 #include "Util.h"
 // Minesweeper Game Engine
-#include "NewEngine.cpp"
+//#include "NewEngine.cpp"
 
 // conda activate base
 // python class_view.py "C:\dev\C++\TAMS" "C:\dev\C++\TAMS\class_hierarchy"
@@ -30,8 +30,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			wndsize.bottom - wndsize.top,
 		},
 		{ // colors
-				Util::Color::BG_T,
-				Util::Color::BG_S
+				Util::Color::BLACK,
+				Util::Color::BLACK
 		},
 		true
 	);
@@ -50,8 +50,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			wndsize.bottom - wndsize.top,
 		},
 		{ // colors
-				Util::Color::BG_T,
-				Util::Color::BG_S
+				Util::Color::BLACK,
+				Util::Color::BLACK
 		},
 		false
 	);
@@ -60,6 +60,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	gameSector.SetRect(gameSectorRect);
 
 	Menu sideMenu(
+		{ // font info
+			24,
+			6
+		},
 		{ // options
 			L"Option 1",
 			L"Option 2",
@@ -83,36 +87,42 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 			L"Option 20",
 		},
 		{ // colors
-			Util::Color::PRIMARY_1,
-			Util::Color::BG_T,
-			Util::Color::BG_T,
-			Util::Color::PRIMARY_1
+			Util::Color::GREEN,
+			Util::Color::BLACK,
+			Util::Color::BLACK,
+			Util::Color::GREEN
 		},
 		app.SECTOR_GAP,
 		0
 	);
 	leftSector.SetMenuRect(sideMenu);
 
-	ScrollBar scrollBar = {
-		Util::Color::COMPLEMENTARY_2,
-		Util::Color::COMPLEMENTARY_5,
+	ScrollBar scrollBar(
+		{ // colors
+			Util::Color::WHITE,
+			Util::Color::BLUE
+		},
 		12,
 		true
-	};
+	);
+	
+	sideMenu.SetBarRect(scrollBar);
+	//scrollBar.SetSegmentHeight();
 
 	// ==================================== Pre-Render UI Elements ====================================
-	app.ClearWindow(Util::Color::FG_T); // sets bg color
+	app.ClearWindow(Util::Color::RED); // sets bg color
 	///window.RenderBorders(window.WINDOW_BORDER_SIZE, Util::Color::FG_T);
 	app.RenderSector(leftSector);
 	app.RenderSector(gameSector);
 
 	// ============================ TAMS Engine and Systems Initialization ============================
-	Engine Tams;
-	Tams.generateBoard();
+	//Engine Tams;
+	//Tams.GenerateBoard();
 
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{
+		sideMenu.SetOptionVisibilities();
 		app.RenderMenu(leftSector, sideMenu);
 		app.RenderScrollBar(sideMenu, scrollBar);
 

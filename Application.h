@@ -7,12 +7,9 @@ class Application {
 public:
 	int WINDOW_BORDER_SIZE;
 	int SECTOR_GAP;
-	int MENU_TEXT_SIZE;
-	int MENU_TEXT_GAP_SIZE;
 
 private:
 	HWND hwnd;
-	HFONT FONT;
 
 public:
 	Application();
@@ -25,16 +22,16 @@ public:
 		return windowRect;
 	}
 
-	void RenderText(const wchar_t* text, int x, int y, COLORREF textFgColor, COLORREF textBgColor) {
+	void RenderText(Menu& menu, const wchar_t* text, int x, int y, COLORREF textFgColor, COLORREF textBgColor) {
 		HDC hdc = GetDC(hwnd);
 		if (hdc) {
 			HFONT hOldFont = static_cast<HFONT>( // store old (default) text font
-				SelectObject(hdc, Application::FONT) // set correct text font
-				);
+				SelectObject(hdc, menu.GetFont()) // set correct text font
+			);
 			SetTextColor(hdc, textFgColor); // text (rgb) color
 			SetBkColor(hdc, textBgColor); // background color
-			SetBkMode(hdc, OPAQUE); // opaque or transparent
-			TextOutW(hdc, x, y, text, wcslen(text)); // draw the text onto the window
+			SetBkMode(hdc, OPAQUE); // TRANSPARENT breaks stuffs
+			TextOutW(hdc, x, y, text, static_cast<int>(wcslen(text))); // draw the text onto the window
 			SelectObject(hdc, hOldFont); // set old text font
 
 			ReleaseDC(hwnd, hdc); // \_(-_-)_/
@@ -83,36 +80,33 @@ public:
 		int firstPosX = sector.GetRect().left + (SECTOR_GAP * 2);
 		int firstPosY = sector.GetRect().top + (SECTOR_GAP * 2);
 		for (int i = 0; i < menu.GetOptions().size(); i++) {
-			if (menu.GetSelected() == i) { // if it is the selected element
-				RenderText(
-					menu.GetOptions().at(i), // name
-					firstPosX, // posX does not need, it is in a straight column
-					firstPosY + (i * MENU_TEXT_GAP_SIZE), // first positionY + size of gap required to get space
-					menu.GetColors().selectedFgColor,
-					menu.GetColors().selectedBgColor
-				);
-			}
-			else { // if it is not the selected element
-				RenderText(
-					menu.GetOptions().at(i),
-					firstPosX,
-					firstPosY + (i * MENU_TEXT_GAP_SIZE),
-					menu.GetColors().defaultFgColor,
-					menu.GetColors().defaultBgColor
-				);
+			if (menu.GetOptions().at(i).visible == true) {
+				if (menu.GetSelected() == i) { // if it is the selected element
+					RenderText(
+						menu,
+						menu.GetOptions().at(i).name, // name
+						firstPosX, // posX does not need, it is in a straight column
+						firstPosY + (i * menu.GetFontInfo().GAP), // first positionY + size of gap required to get space
+						menu.GetColors().selectedFgColor,
+						menu.GetColors().selectedBgColor
+					);
+				}
+				else { // if it is not the selected element
+					RenderText(
+						menu,
+						menu.GetOptions().at(i).name,
+						firstPosX,
+						firstPosY + (i * menu.GetFontInfo().GAP),
+						menu.GetColors().defaultFgColor,
+						menu.GetColors().defaultBgColor
+					);
+				}
 			}
 		}
 	}
 	void RenderScrollBar(Menu& menu, ScrollBar& bar) {
-		RECT menuRect = menu.GetRect();
-
-		RECT barBgRect = {
-			menuRect.right - bar.barWitdh,
-			menuRect.top,
-			menuRect.right,
-			menuRect.bottom
-		};
-		RenderRect(barBgRect, bar.bgColor);
+		RenderRect(bar.GetRect(), bar.GetColors().bgColor);
+		// Display foreground of bar
 	}
 	void ClearWindow(COLORREF color) {
 		RECT windowRect = GetWindowSize();

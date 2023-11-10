@@ -16,29 +16,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 /*Initialize the window with set parameters.
 	Dev Note: This will eventually be configurable, but that is not a main priority on my list.*/
 Application::Application() : hwnd(NULL) {
-	MENU_TEXT_SIZE = 24;
-	MENU_TEXT_GAP_SIZE = MENU_TEXT_SIZE + 8;
 	SECTOR_GAP = 6;
 	WINDOW_BORDER_SIZE = 12;
-
-	// More Info
-	// https://learn.microsoft.com/en-us/windows/win32/api/wingdi/nf-wingdi-createfonta
-	Application::FONT = CreateFontA(
-		MENU_TEXT_SIZE, // height
-		0, // width, 0 = auto match closest balue
-		0,
-		0,
-		FW_NORMAL, // weight, 400 = normal, 700 = bold
-		FALSE, // italic
-		FALSE, // underline
-		FALSE, // strikeout
-		ANSI_CHARSET, // charset
-		OUT_DEFAULT_PRECIS, // how accurate is the text on screen vs. expected?
-		CLIP_DEFAULT_PRECIS,
-		DEFAULT_QUALITY,
-		FF_SWISS, // sans serif
-		"Verdana"
-	);
 
 	// Create a window
 	WNDCLASSEX wc = {
