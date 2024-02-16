@@ -123,6 +123,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	while (GetMessage(&msg, NULL, 0, 0)) 
 	{
 		sideMenu.SetOptionVisibilities();
+		sideMenu.SetBarSegmentHeight(scrollBar);
 		app.RenderMenu(leftSector, sideMenu);
 		app.RenderScrollBar(sideMenu, scrollBar);
 

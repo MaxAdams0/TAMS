@@ -97,6 +97,12 @@ public:
 			}
 		);
 	}
+
+	void SetBarSegmentHeight(ScrollBar& bar) {
+		int barHeight = bar.GetRect().bottom - bar.GetRect().top;
+		// Segment height (pixels) = the height of the bar / the amount of options in he menu
+		bar.SetSegmentHeight(barHeight / static_cast<int>(this->options.size()));
+	}
 	
 	void SetOptionVisibilities() {
 		for (int i = 0; i < this->options.size() - 1; i++) {

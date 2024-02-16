@@ -11,7 +11,6 @@ private:
 	
 	RECT rect;
 	Colors colors;
-	std::vector<bool> segments;
 	int width; // pixels
 	int segmentHeight; // pixels
 	bool visible;
@@ -23,7 +22,6 @@ public:
 		bool visible
 	) : rect({ 0,0,0,0 }),
 		colors(colors),
-		segments(NULL),
 		width(width),
 		segmentHeight(0),
 		visible(visible)
@@ -41,18 +39,17 @@ public:
 		this->rect = rect;
 	}
 
-	void SetSegments(std::vector<bool> segments) {
-		this->segments = segments;
-	}
-
-	void SetSegmentHeight() {
-		int barHeight = this->rect.bottom - this->rect.top;
-		this->segmentHeight = barHeight / static_cast<int>(this->segments.size());
+	void SetSegmentHeight(int height) {
+		this->segmentHeight = height;
 	}
 
 	// ======================================== Getters ========================================
 	RECT GetRect() const {
 		return this->rect;
+	}
+
+	int GetSegmentHeight() const {
+		return this->segmentHeight;
 	}
 	
 	Colors GetColors() const {

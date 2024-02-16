@@ -105,8 +105,20 @@ public:
 		}
 	}
 	void RenderScrollBar(Menu& menu, ScrollBar& bar) {
-		RenderRect(bar.GetRect(), bar.GetColors().bgColor);
-		// Display foreground of bar
+		for (int i = 0; i < menu.GetOptions().size(); i++) {
+			// rectangle of current segment
+			RECT newBarRect = {
+				bar.GetRect().left + 1,
+				bar.GetRect().top + (i * bar.GetSegmentHeight()) + menu.GetOffset(),
+				bar.GetRect().right - 1,
+				bar.GetRect().top + ((i + 1) * bar.GetSegmentHeight()) + menu.GetOffset(),
+			};
+
+			RenderRect(
+				newBarRect,
+				(menu.GetOptions().at(i).visible) ? bar.GetColors().fgColor : bar.GetColors().bgColor
+			);
+		}
 	}
 	void ClearWindow(COLORREF color) {
 		RECT windowRect = GetWindowSize();
